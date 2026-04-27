@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>健身回本计划</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "PingFang SC", "Microsoft Yahei", sans-serif;
+    }
+
+    body {
+      background: #f5f7fa;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    h2 {
+      text-align: center;
+      color: #222;
+      margin-bottom: 8px;
+    }
+
+    .sub-title {
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .day-count {
+      color: #e64340;
+      font-weight: bold;
+    }
+
+    .set-card {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .set-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 10px 0;
+      gap: 12px;
+    }
+
+    .set-item input {
+      width: 100px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 6px 8px;
+      text-align: right;
+      font-size: 16px;
+    }
+
+    .count-card {
+      display: flex;
+      gap: 12px;
+      margin: 30px 0;
+    }
+
+    .count-box {
+      flex: 1;
+      text-align: center;
+      padding: 24px 10px;
+      border-radius: 12px;
+      color: #fff;
+    }
+
+    .swim {
+      background: #409eff;
+    }
+
+    .course {
+      background: #67c23a;
+    }
+
+    .num {
+      font-size: 40px;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    button {
+      flex: 1;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .add {
+      background: rgba(255, 255, 255, 0.3);
+      color: #fff;
+    }
+
+    .info-card {
+      background: #f0f7ff;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .info-item {
+      display: flex;
+      justify-content: space-between;
+      line-height: 2;
+      color: #333;
+      gap: 12px;
+    }
+
+    .reset-btn,
+    .save-btn {
+      width: 100%;
+      background: #eee;
+      color: #666;
+      margin-top: 10px;
+    }
+
+    .save-btn {
+      background: #e6f4ff;
+      color: #1890ff;
+      margin-bottom: 8px;
+    }
+
+    .price-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .price-actions button {
+      margin-top: 0;
+    }
+
+    .saved-btn {
+      background: #1890ff;
+      color: #fff;
+      cursor: default;
+    }
+
+    .edit-btn {
+      background: #fff;
+      color: #1890ff;
+      border: 1px solid #91d5ff;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    input:disabled {
+      background: #f5f5f5;
+      color: #666;
+      cursor: not-allowed;
+    }
+
+    .money-text {
+      font-size: 18px;
+      color: #e64340;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>健身回本计划</h2>
+    <div class="sub-title" id="dateTip"></div>
+
+    <div class="set-card">
+      <div class="set-item">
+        <span>游泳单次单价（元）</span>
+        <input type="number" step="0.01" id="swimPrice" placeholder="0.00">
+      </div>
+      <div class="set-item">
+        <span>团课单次单价（元）</span>
+        <input type="number" step="0.01" id="coursePrice" placeholder="0.00">
+      </div>
+      <div id="saveActions">
+        <button class="save-btn" onclick="savePrice()">保存单价</button>
+      </div>
+      <div class="price-actions hidden" id="savedActions">
+        <button class="saved-btn" disabled>已保存</button>
+        <button class="edit-btn" onclick="editPrice()">去修改</button>
+      </div>
+    </div>
+
+    <div class="count-card">
+      <div class="count-box swim">
+        <div>游泳打卡</div>
+        <div class="num" id="swimCount">0</div>
+        <div>次</div>
+        <div class="btn-group">
+          <button class="add" onclick="changeNum('swim', 1)">+1</button>
+          <button class="add" onclick="changeNum('swim', -1)">-1</button>
+        </div>
+      </div>
+      <div class="count-box course">
+        <div>团课打卡</div>
+        <div class="num" id="courseCount">0</div>
+        <div>次</div>
+        <div class="btn-group">
+          <button class="add" onclick="changeNum('course', 1)">+1</button>
+          <button class="add" onclick="changeNum('course', -1)">-1</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-item">
+        <span>健身卡费用</span>
+        <span>3500.00 元</span>
+      </div>
+      <div class="info-item">
+        <span>游泳累计花费</span>
+        <span id="swimUsed" class="money-text">0.00 元</span>
+      </div>
+      <div class="info-item">
+        <span>团课累计花费</span>
+        <span id="courseUsed" class="money-text">0.00 元</span>
+      </div>
+      <div class="info-item">
+        <span>合计已花费</span>
+        <span id="allUsed" class="money-text">0.00 元</span>
+      </div>
+      <div class="info-item">
+        <span>剩余金额</span>
+        <span id="leftMoney">3500.00 元</span>
+      </div>
+    </div>
+
+    <button class="reset-btn" onclick="resetAll()">重置所有数据</button>
+  </div>
+
+  <script>
+    const TOTAL_FEE = 3500;
+    const expireDate = new Date("2027-10-16");
+    const storageKey = "fitCostData";
+
+    function initDateTip() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth() + 1;
+      const date = now.getDate();
+      const diffTime = expireDate - now;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      let tip = `${year}年${month}月${date}日`;
+
+      if (diffDays > 0) {
+        tip += `：距离健身卡到期还剩 <span class="day-count">${diffDays} 天</span>`;
+      } else if (diffDays === 0) {
+        tip += `，<span class="day-count">今日健身卡到期</span>`;
+      } else {
+        tip += `，健身卡已过期 <span class="day-count">${Math.abs(diffDays)} 天</span>`;
+      }
+
+      document.getElementById("dateTip").innerHTML = tip;
+    }
+
+    let data = JSON.parse(localStorage.getItem(storageKey)) || {
+      swimPrice: 0,
+      coursePrice: 0,
+      swimCnt: 0,
+      courseCnt: 0,
+      priceSaved: false
+    };
+
+    data.priceSaved = Boolean(data.priceSaved);
+
+    function render() {
+      const swimPriceInput = document.getElementById("swimPrice");
+      const coursePriceInput = document.getElementById("coursePrice");
+      const saveActions = document.getElementById("saveActions");
+      const savedActions = document.getElementById("savedActions");
+
+      swimPriceInput.value = data.swimPrice;
+      coursePriceInput.value = data.coursePrice;
+      swimPriceInput.disabled = data.priceSaved;
+      coursePriceInput.disabled = data.priceSaved;
+      saveActions.classList.toggle("hidden", data.priceSaved);
+      savedActions.classList.toggle("hidden", !data.priceSaved);
+      document.getElementById("swimCount").innerText = data.swimCnt;
+      document.getElementById("courseCount").innerText = data.courseCnt;
+
+      const swimCost = (data.swimCnt * data.swimPrice).toFixed(2);
+      const courseCost = (data.courseCnt * data.coursePrice).toFixed(2);
+      const allCost = (Number(swimCost) + Number(courseCost)).toFixed(2);
+      const left = (TOTAL_FEE - allCost).toFixed(2);
+
+      document.getElementById("swimUsed").innerText = `${swimCost} 元`;
+      document.getElementById("courseUsed").innerText = `${courseCost} 元`;
+      document.getElementById("allUsed").innerText = `${allCost} 元`;
+      document.getElementById("leftMoney").innerText = `${left} 元`;
+
+      localStorage.setItem(storageKey, JSON.stringify(data));
+    }
+
+    function savePrice() {
+      data.swimPrice = Number(document.getElementById("swimPrice").value) || 0;
+      data.coursePrice = Number(document.getElementById("coursePrice").value) || 0;
+      data.priceSaved = true;
+      render();
+    }
+
+    function editPrice() {
+      data.priceSaved = false;
+      render();
+    }
+
+    function changeNum(type, step) {
+      if (type === "swim") {
+        data.swimCnt = Math.max(0, data.swimCnt + step);
+      } else {
+        data.courseCnt = Math.max(0, data.courseCnt + step);
+      }
+
+      render();
+    }
+
+    function resetAll() {
+      if (confirm("确定清空所有打卡次数？")) {
+        data.swimCnt = 0;
+        data.courseCnt = 0;
+        render();
+      }
+    }
+
+    initDateTip();
+    render();
+  </script>
+</body>
+</html>
