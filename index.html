@@ -19,6 +19,7 @@
 
     .container {
       max-width: 420px;
+      min-height: calc(100vh - 40px);
       margin: 0 auto;
       background: #fff;
       border-radius: 16px;
@@ -72,7 +73,21 @@
     .count-card {
       display: flex;
       gap: 12px;
-      margin: 30px 0;
+      margin-top: 14px;
+    }
+
+    .record-card {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .record-title {
+      text-align: center;
+      color: #222;
+      font-size: 1.2em;
+      font-weight: bold;
     }
 
     .count-box {
@@ -91,10 +106,17 @@
       background: #67c23a;
     }
 
-    .num {
-      font-size: 40px;
-      font-weight: bold;
+    .count-value {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 4px;
       margin: 10px 0;
+    }
+
+    .num {
+      font-size: 32px;
+      font-weight: bold;
     }
 
     .btn-group {
@@ -115,6 +137,19 @@
     .add {
       background: rgba(255, 255, 255, 0.3);
       color: #fff;
+    }
+
+    .progress-btn {
+      width: 100%;
+      background: #1890ff;
+      color: #fff;
+      margin-top: 14px;
+    }
+
+    .progress-btn:disabled {
+      background: #eee;
+      color: #999;
+      cursor: not-allowed;
     }
 
     .info-card {
@@ -183,10 +218,96 @@
       color: #e64340;
       font-weight: bold;
     }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .history-header {
+      position: relative;
+    }
+
+    .header-back-btn {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: auto;
+      background: transparent;
+      color: #1890ff;
+      padding: 0;
+      font-size: 14px;
+    }
+
+    .history-item {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .history-item-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .history-time {
+      color: #222;
+      font-weight: bold;
+    }
+
+    .delete-record-btn {
+      width: 28px;
+      height: 28px;
+      flex: 0 0 auto;
+      background: transparent;
+      padding: 0;
+    }
+
+    .delete-record-icon {
+      width: 20px;
+      height: 20px;
+      display: block;
+    }
+
+    .history-empty {
+      text-align: center;
+      color: #999;
+      padding: 32px 0;
+    }
+
+    .back-btn {
+      width: 100%;
+      background: #e6f4ff;
+      color: #1890ff;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.78);
+      color: #fff;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 14px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="container" id="mainPage">
     <h2>健身回本计划</h2>
     <div class="sub-title" id="dateTip"></div>
 
@@ -208,25 +329,33 @@
       </div>
     </div>
 
-    <div class="count-card">
-      <div class="count-box swim">
-        <div>游泳打卡</div>
-        <div class="num" id="swimCount">0</div>
-        <div>次</div>
-        <div class="btn-group">
-          <button class="add" onclick="changeNum('swim', 1)">+1</button>
-          <button class="add" onclick="changeNum('swim', -1)">-1</button>
+    <div class="record-card">
+      <div class="record-title">今日打卡记录</div>
+      <div class="count-card">
+        <div class="count-box swim">
+          <div>游泳打卡</div>
+          <div class="count-value">
+            <span class="num" id="swimCount">0</span>
+            <span>次</span>
+          </div>
+          <div class="btn-group">
+            <button class="add" onclick="changeNum('swim', 1)">+1</button>
+            <button class="add" onclick="changeNum('swim', -1)">-1</button>
+          </div>
+        </div>
+        <div class="count-box course">
+          <div>团课打卡</div>
+          <div class="count-value">
+            <span class="num" id="courseCount">0</span>
+            <span>次</span>
+          </div>
+          <div class="btn-group">
+            <button class="add" onclick="changeNum('course', 1)">+1</button>
+            <button class="add" onclick="changeNum('course', -1)">-1</button>
+          </div>
         </div>
       </div>
-      <div class="count-box course">
-        <div>团课打卡</div>
-        <div class="num" id="courseCount">0</div>
-        <div>次</div>
-        <div class="btn-group">
-          <button class="add" onclick="changeNum('course', 1)">+1</button>
-          <button class="add" onclick="changeNum('course', -1)">-1</button>
-        </div>
-      </div>
+      <button class="progress-btn" id="saveProgressBtn" onclick="saveProgress()" disabled>保存进度</button>
     </div>
 
     <div class="info-card">
@@ -252,8 +381,20 @@
       </div>
     </div>
 
-    <button class="reset-btn" onclick="resetAll()">重置所有数据</button>
+    <button class="reset-btn" onclick="goHistory()">查看打卡记录</button>
   </div>
+
+  <div class="container hidden" id="historyPage">
+    <div class="history-header">
+      <button class="header-back-btn" onclick="goHome()">返回</button>
+      <h2>历史打卡记录</h2>
+    </div>
+    <div class="sub-title">查看每次打卡情况</div>
+    <div class="history-list" id="historyList"></div>
+    <button class="back-btn" onclick="goHome()">返回首页</button>
+  </div>
+
+  <div class="toast" id="toast">今日打卡记录已保存</div>
 
   <script>
     const TOTAL_FEE = 3500;
@@ -281,21 +422,71 @@
       document.getElementById("dateTip").innerHTML = tip;
     }
 
-    let data = JSON.parse(localStorage.getItem(storageKey)) || {
-      swimPrice: 0,
-      coursePrice: 0,
-      swimCnt: 0,
-      courseCnt: 0,
-      priceSaved: false
-    };
+    function createDefaultData() {
+      return {
+        swimPrice: 0,
+        coursePrice: 0,
+        todaySwimCnt: 0,
+        todayCourseCnt: 0,
+        priceSaved: false,
+        records: []
+      };
+    }
 
-    data.priceSaved = Boolean(data.priceSaved);
+    function normalizeData(savedData) {
+      const defaultData = createDefaultData();
+      const parsedData = savedData || defaultData;
+
+      return {
+        ...defaultData,
+        ...parsedData,
+        swimPrice: Number(parsedData.swimPrice) || 0,
+        coursePrice: Number(parsedData.coursePrice) || 0,
+        todaySwimCnt: Number(parsedData.todaySwimCnt ?? parsedData.swimCnt) || 0,
+        todayCourseCnt: Number(parsedData.todayCourseCnt ?? parsedData.courseCnt) || 0,
+        priceSaved: Boolean(parsedData.priceSaved),
+        records: Array.isArray(parsedData.records) ? parsedData.records : []
+      };
+    }
+
+    let data = normalizeData(JSON.parse(localStorage.getItem(storageKey)));
+
+    function saveData() {
+      localStorage.setItem(storageKey, JSON.stringify(data));
+    }
+
+    function formatMoney(value) {
+      return `${Number(value).toFixed(2)} 元`;
+    }
+
+    function formatDateTime(dateValue) {
+      const date = new Date(dateValue);
+      const pad = (num) => String(num).padStart(2, "0");
+
+      return `${date.getFullYear()}年${pad(date.getMonth() + 1)}月${pad(date.getDate())}日 ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+    }
+
+    function calcTotals() {
+      return data.records.reduce((totals, record) => {
+        const swimAmount = Number(record.swimAmount) || 0;
+        const courseAmount = Number(record.courseAmount) || 0;
+
+        totals.swimCost += swimAmount;
+        totals.courseCost += courseAmount;
+        return totals;
+      }, {
+        swimCost: 0,
+        courseCost: 0
+      });
+    }
 
     function render() {
       const swimPriceInput = document.getElementById("swimPrice");
       const coursePriceInput = document.getElementById("coursePrice");
       const saveActions = document.getElementById("saveActions");
       const savedActions = document.getElementById("savedActions");
+      const saveProgressBtn = document.getElementById("saveProgressBtn");
+      const hasTodayRecord = data.todaySwimCnt > 0 || data.todayCourseCnt > 0;
 
       swimPriceInput.value = data.swimPrice;
       coursePriceInput.value = data.coursePrice;
@@ -303,20 +494,20 @@
       coursePriceInput.disabled = data.priceSaved;
       saveActions.classList.toggle("hidden", data.priceSaved);
       savedActions.classList.toggle("hidden", !data.priceSaved);
-      document.getElementById("swimCount").innerText = data.swimCnt;
-      document.getElementById("courseCount").innerText = data.courseCnt;
+      document.getElementById("swimCount").innerText = data.todaySwimCnt;
+      document.getElementById("courseCount").innerText = data.todayCourseCnt;
+      saveProgressBtn.disabled = !hasTodayRecord;
 
-      const swimCost = (data.swimCnt * data.swimPrice).toFixed(2);
-      const courseCost = (data.courseCnt * data.coursePrice).toFixed(2);
-      const allCost = (Number(swimCost) + Number(courseCost)).toFixed(2);
-      const left = (TOTAL_FEE - allCost).toFixed(2);
+      const totals = calcTotals();
+      const allCost = totals.swimCost + totals.courseCost;
+      const left = TOTAL_FEE - allCost;
 
-      document.getElementById("swimUsed").innerText = `${swimCost} 元`;
-      document.getElementById("courseUsed").innerText = `${courseCost} 元`;
-      document.getElementById("allUsed").innerText = `${allCost} 元`;
-      document.getElementById("leftMoney").innerText = `${left} 元`;
+      document.getElementById("swimUsed").innerText = formatMoney(totals.swimCost);
+      document.getElementById("courseUsed").innerText = formatMoney(totals.courseCost);
+      document.getElementById("allUsed").innerText = formatMoney(allCost);
+      document.getElementById("leftMoney").innerText = formatMoney(left);
 
-      localStorage.setItem(storageKey, JSON.stringify(data));
+      saveData();
     }
 
     function savePrice() {
@@ -333,24 +524,116 @@
 
     function changeNum(type, step) {
       if (type === "swim") {
-        data.swimCnt = Math.max(0, data.swimCnt + step);
+        data.todaySwimCnt = Math.max(0, data.todaySwimCnt + step);
       } else {
-        data.courseCnt = Math.max(0, data.courseCnt + step);
+        data.todayCourseCnt = Math.max(0, data.todayCourseCnt + step);
       }
 
       render();
     }
 
-    function resetAll() {
-      if (confirm("确定清空所有打卡次数？")) {
-        data.swimCnt = 0;
-        data.courseCnt = 0;
-        render();
+    function saveProgress() {
+      if (data.todaySwimCnt === 0 && data.todayCourseCnt === 0) {
+        return;
+      }
+
+      const swimAmount = Number((data.todaySwimCnt * data.swimPrice).toFixed(2));
+      const courseAmount = Number((data.todayCourseCnt * data.coursePrice).toFixed(2));
+
+      data.records.unshift({
+        id: Date.now(),
+        savedAt: new Date().toISOString(),
+        swimCnt: data.todaySwimCnt,
+        courseCnt: data.todayCourseCnt,
+        swimPrice: data.swimPrice,
+        coursePrice: data.coursePrice,
+        swimAmount,
+        courseAmount
+      });
+      data.todaySwimCnt = 0;
+      data.todayCourseCnt = 0;
+      render();
+      showToast("今日打卡记录已保存");
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.innerText = message;
+      toast.classList.add("show");
+
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => {
+        toast.classList.remove("show");
+      }, 1800);
+    }
+
+    function renderHistory() {
+      const historyList = document.getElementById("historyList");
+
+      if (data.records.length === 0) {
+        historyList.innerHTML = '<div class="history-empty">暂无打卡记录</div>';
+        return;
+      }
+
+      historyList.innerHTML = data.records.map((record) => {
+        const swimCnt = Number(record.swimCnt) || 0;
+        const courseCnt = Number(record.courseCnt) || 0;
+        const swimAmount = Number(record.swimAmount) || 0;
+        const courseAmount = Number(record.courseAmount) || 0;
+
+        return `
+          <div class="history-item">
+            <div class="history-item-header">
+              <div class="history-time">${formatDateTime(record.savedAt)}</div>
+              <button class="delete-record-btn" onclick="deleteRecord(${record.id})" aria-label="删除该条记录">
+                <img class="delete-record-icon" src="https://dimg04.tripcdn.com/images/1t34q12000sawz9ml931D.png" alt="">
+              </button>
+            </div>
+            <div class="info-item">
+              <span>游泳打卡</span>
+              <span>${swimCnt} 次 / ${formatMoney(swimAmount)}</span>
+            </div>
+            <div class="info-item">
+              <span>团课打卡</span>
+              <span>${courseCnt} 次 / ${formatMoney(courseAmount)}</span>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function deleteRecord(recordId) {
+      data.records = data.records.filter((record) => record.id !== recordId);
+      render();
+      renderHistory();
+      showToast("打卡记录已删除");
+    }
+
+    function goHistory() {
+      location.hash = "history";
+      renderPage();
+    }
+
+    function goHome() {
+      location.hash = "";
+      renderPage();
+    }
+
+    function renderPage() {
+      const isHistoryPage = location.hash === "#history";
+
+      document.getElementById("mainPage").classList.toggle("hidden", isHistoryPage);
+      document.getElementById("historyPage").classList.toggle("hidden", !isHistoryPage);
+
+      if (isHistoryPage) {
+        renderHistory();
       }
     }
 
     initDateTip();
     render();
+    renderPage();
+    window.addEventListener("hashchange", renderPage);
   </script>
 </body>
 </html>
